@@ -6,7 +6,7 @@ module ActionView
       :show_button_panel => true,
       :constrain_input => false,
       :show_on => 'button',
-      :button_image => 'calendar.gif',
+      :button_image => '/calendar.gif',
       :button_image_only => true,
       :today_button_triggers_today => true
   }
@@ -26,35 +26,39 @@ module ActionView
         output = <<-OUTPUT
 #{tag = text_field(object_name, method, tag_options)}
           <script type="text/javascript">
+if ('undefined' === typeof(today_fields)) {
+  var today_fields = [];
+}
           $(document).ready(function(ev) {
-            $("##{tag.match(/id="([^"]+)"/)[1]}").datepicker({#{new_date_options.to_json}});
+            $("##{tag.match(/id="([^"]+)"/)[1]}").datepicker(#{new_date_options.to_json});
         OUTPUT
 
         if today_button
           output += <<-OUTPUT
-$("##{tag.match(/id="([^"]+)"/)[1]}").datepicker._gotoToday = function(id) {
-    var target = $(id);
-    var inst = this._getInst(target[0]);
-    if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
-            inst.selectedDay = inst.currentDay;
-            inst.drawMonth = inst.selectedMonth = inst.currentMonth;
-            inst.drawYear = inst.selectedYear = inst.currentYear;
-    }
-    else {
-            var date = new Date();
-            inst.selectedDay = date.getDate();
-            inst.drawMonth = inst.selectedMonth = date.getMonth();
-            inst.drawYear = inst.selectedYear = date.getFullYear();
-            this._setDateDatepicker(target, date);
-            this._selectDate(id, this._getDateDatepicker(target));
-    }
-    this._notifyChange(inst);
-    this._adjustDate(target);
-}
-          })
+          $.datepicker._gotoToday = function(id) {
+              var target = $(id);
+              var inst = this._getInst(target[0]);
+              if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
+                      inst.selectedDay = inst.currentDay;
+                      inst.drawMonth = inst.selectedMonth = inst.currentMonth;
+                      inst.drawYear = inst.selectedYear = inst.currentYear;
+              }
+              else {
+                      var date = new Date();
+                      inst.selectedDay = date.getDate();
+                      inst.drawMonth = inst.selectedMonth = date.getMonth();
+                      inst.drawYear = inst.selectedYear = date.getFullYear();
+                  if ($.inArray(id, today_fields) !== -1) {
+                      this._setDateDatepicker(target, date);
+                      this._selectDate(id, this._getDateDatepicker(target));
+                  }
+              }
+              this._notifyChange(inst);
+              this._adjustDate(target);
+          }
           OUTPUT
         end
-        output += "</script>"
+        output += "})</script>"
         output
       end
     end
@@ -73,12 +77,16 @@ $("##{tag.match(/id="([^"]+)"/)[1]}").datepicker._gotoToday = function(id) {
         output = <<-OUTPUT
 #{tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)}
                 <script type="text/javascript">
+if ('undefined' === typeof(today_fields)) {
+  var today_fields = [];
+}
                 $(document).ready(function(ev) {
-                  $("##{sanitize_to_id(name)}").datepicker({#{new_date_options.to_json}});
+                  $("##{sanitize_to_id(name)}").datepicker(#{new_date_options.to_json});
         OUTPUT
         if today_button
           output += <<-OUTPUT
-      $("##{sanitize_to_id(name)}").datepicker._gotoToday = function(id) {
+          today_fields.push("##{sanitize_to_id(name)}");
+      $.datepicker._gotoToday = function(id) {
           var target = $(id);
           var inst = this._getInst(target[0]);
           if (this._get(inst, 'gotoCurrent') && inst.currentDay) {
@@ -91,16 +99,17 @@ $("##{tag.match(/id="([^"]+)"/)[1]}").datepicker._gotoToday = function(id) {
                   inst.selectedDay = date.getDate();
                   inst.drawMonth = inst.selectedMonth = date.getMonth();
                   inst.drawYear = inst.selectedYear = date.getFullYear();
+              if ($.inArray(id, today_fields) !== -1) {
                   this._setDateDatepicker(target, date);
                   this._selectDate(id, this._getDateDatepicker(target));
+              }
           }
           this._notifyChange(inst);
           this._adjustDate(target);
       }
-                })
           OUTPUT
         end
-        output += "</script>"
+        output += "})</script>"
         output
       end
     end

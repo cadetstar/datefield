@@ -6,6 +6,8 @@ Gem::Specification.new do |s|
   s.description = 'jQuery adds a datepicker that can be placed on certain input tags, this enables users to use regular form tags to do date fields.'
   s.authors = ['Michael Madison']
   s.email   = 'cadetstar@hotmail.com'
-  s.files   = Dir["{lib}/**/*.rb"]
+  s.files   = Dir["{lib,vendor}/**/*"]
   s.require_path = 'lib'
+  s.homepage = 'https://github.com/simu-michaelm/datefield'
+  s.add_dependency "railties", "~> 3.1"
 end
