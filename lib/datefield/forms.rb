@@ -110,13 +110,14 @@ if ('undefined' === typeof(today_fields)) {
           OUTPUT
         end
         output += "})</script>"
+
         output
       end
     end
 
     class FormBuilder
       def date_field(method, options = {})
-        @template.send(
+        raw @template.send(
             'date_field',
             @object_name,
             method,
